@@ -93,6 +93,16 @@ data_monthly <- aggregate(Num_Acc ~ month, data, FUN = length)
 data$week <- format(data$date, "%U") 
 data_weekly <- aggregate(Num_Acc ~ week, data, FUN = length)
 
+#Il y a trois lignes ou l'année de naissance et l'age son manquant, on décide de supprimer ces lignes. Même chose dans data_brut pour une meilleur compatibilités entre data et data_brut
+data_brut <- read.csv2("stat_acc_V3.csv", sep =";")
+summary(data_brut)
+data_brut$an_nais <- as.numeric(data_brut$an_nais)
+data_brut$age <- as.numeric(data_brut$age)
+data_brut <- data_brut[!(is.na(data_brut$an_nais) & is.na(data_brut$age)), ]
+#data$date <- as.Date(data_brut$date, format = "%Y-%m-%d %H:%M:%S")
+data$date <- as.POSIXct(data_brut$date, format = "%Y-%m-%d %H:%M:%S")
+summary(data)
+
 # Préparation Gabriel 
 
 pop <- read.csv("data_pop.csv", sep=";")
