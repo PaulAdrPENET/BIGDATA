@@ -183,3 +183,4 @@ hist(vecteur_age,
           ylim = c(0,2500),
           xlim = c(0,110)
 )
+

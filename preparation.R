@@ -259,16 +259,3 @@ data$descr_cat_veh <- as.numeric(data$descr_cat_veh)
 #Voiturette (Quadricycle à moteur carrossé) (anciennement "voiturette ou tricycle à moteur") = 23
 #VU seul 1,5T <= PTAC <= 3,5T avec ou sans remorque = 24
 
-
-
-
-# Visualisation
-
-# Nombre d’accidents en fonction des conditions athmosphériques
-
-conditions_athmospheriques <- subset(data,select =descr_athmo)
-conditions_athmospheriques <- table(conditions_athmospheriques)
-plot(conditions_athmospheriques,xlab="conditions atmosphériques",ylab="nombre d'accidents")
-
-# Nombre d’accidents en fonction de la description de la surface
-description_surface <- subset(data,select =descr_etat_surf)
