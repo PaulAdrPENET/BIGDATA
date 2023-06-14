@@ -111,7 +111,7 @@ data$descr_athmo <- as.numeric(data$descr_athmo)
 # 6 = Pluie légère
 # 7 = Temps couvert
 # 8 = Temps éblouissant 
-# 9 = Vent fort – tempête 
+# 9 = Vent fort – tempête +
 
 
 # Visualisation
@@ -203,17 +203,24 @@ regions_geojson <- geojsonio::geojson_read("regions.geojson", what = "sp")
 
 carte_regions <- leaflet() 
 carte_regions <-  carte_regions%>%addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(data = regions_geojson,weight = 1,fillOpacity = 0.6)%>%
+  addPolygons(data = regions_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
   setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
-  
 
 #ajout des marqueurs sur la carte, région par région :
 
-carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 49,lng = 0.4,color = "red",label = accidents_normandie[2])
-carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 50.4,lng = 2.7,color = "red",label = accidents_hauts_de_france[2])
-carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.9,lng = 2.5,color = "red",label = accidents_ile_de_france[2])
-carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.5,lng = 6,color = "red",label = accidents_grand_est[2])
-carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 47,lng = 5,color = "red",label = accidents_bourgogne_franche_compte[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 49,lng = 0.4,color = "red",fillOpacity = 0.5,label = accidents_normandie[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 50.4,lng = 2.7,color = "red",fillOpacity = 0.5,label = accidents_hauts_de_france[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.9,lng = 2.5,color = "red",fillOpacity = 0.5,label = accidents_ile_de_france[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.5,lng = 6,color = "red",fillOpacity = 0.5,label = accidents_grand_est[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 47,lng = 5,color = "red",fillOpacity = 0.5,label = accidents_bourgogne_franche_compte[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.2,lng = -2.9,color = "red",fillOpacity = 0.5,label = accidents_bretagne[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 47.1,lng = -1.6,color = "red",fillOpacity = 0.5,label = accidents_pays_de_la_loire[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 47.6,lng = 1.8,color = "red",fillOpacity = 0.5,label = accidents_centre_val_de_loire[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 45.3,lng = -0.2,color = "red",fillOpacity = 0.5,label = accidents_nouvelle_aquitaine[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 43.6,lng = 1.9,color = "red",fillOpacity = 0.5,label = accidents_occitanie[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 45.4,lng = 4.37,color = "red",fillOpacity = 0.5,label = accidents_auvergne_rhone_alpes[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 43.7,lng = 6.18,color = "red",fillOpacity = 0.5,label = accidents_provence_alpes_cote_azur[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 42.1,lng = 9,color = "red",fillOpacity = 0.5,label = accidents_corse[2])
 
 
 #carte_regions <- carte_regions %>% clearMarkers() #permet de supprimer les points en cas d'erreur
@@ -221,4 +228,54 @@ carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 
   
 carte_regions #affiche la carte des régions de France
 
-print(accidents_normandie)
+#carte_departements
+departements_geojson <- geojsonio::geojson_read("departements.geojson", what = "sp") 
+
+
+carte_departements <- leaflet() 
+carte_departements <-  carte_departements%>%addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = departements_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
+  setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
+
+#nouveau fichier csv comportant chaque departements avec son nombre d'accidents, sa latitudde et sa longitude :
+accidents_departement <- read.csv("chemin/vers/fichier.csv")
+
+#boucle qui permet d'ajouter chaque marqueur sur la carte des départements
+for (i in 1:nrow(accidents_departement)) {
+  latitude <- accidents_departement[i, "latitude"]
+  longitude <- accidents_departement[i, "longitude"]
+  nombre_accidents <- accidents_departement[i, "nombre_accidents"]
+  
+  carte_departements <- carte_departements %>% addCircleMarkers(data = accidents_departement
+                              lat = latitude,
+                              lng = longitude,
+                              radius = 2,
+                              color = "red",
+                              fill = TRUE,
+                              fillOpacity = 0.5,
+                              label = nombre_accidents)
+}
+
+carte_departements#affiche la carte des départements
+
+
+
+
+#carte des régions comportant le nombre de tués et de Blessés hospitalisés
+
+accidents_region <- read.csv("chemin/vers/fichier.csv")
+
+for (i in 1:nrow(accidents_region)) {
+  latitude <- accidents_region[i, "latitude"]
+  longitude <- accidents_region[i, "longitude"]
+  nombre_tues <- accidents_region[i, "nombre_tue"]
+  nombre_blesse_hospitalise <- accidents_region[i, "nombre_blesse_hospitalise"]
+  
+  carte_departements_gravite <- carte_departements_gravite %>% addCircleMarkers(data = accidents_region,
+                              lat = latitude,
+                              lng = longitude,
+                              color = "red",
+                              fill = TRUE,
+                              fillOpacity = 0.5,
+                              label = paste("nombre_tue : ", nombre_tue, "<br>", "nombre_blesse_hospitalise : ", nombre_blesse_hospitalise))
+}
