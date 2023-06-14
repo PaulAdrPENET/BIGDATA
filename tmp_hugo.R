@@ -99,16 +99,126 @@ data$descr_cat_veh <- as.numeric(data$descr_cat_veh)
 #Voiturette (Quadricycle à moteur carrossé) (anciennement "voiturette ou tricycle à moteur") = 23
 #VU seul 1,5T <= PTAC <= 3,5T avec ou sans remorque = 24
 
+# Modification de la colonne descr_athmo 
+data$descr_athmo <- factor(data$descr_athmo)
+data$descr_athmo <- as.numeric(data$descr_athmo)
 
+# 1 = Autre
+# 2 = Brouillard – fumée 
+# 3 = Neige – grêle 
+# 4 = Normale 
+# 5 = Pluie forte 
+# 6 = Pluie légère
+# 7 = Temps couvert
+# 8 = Temps éblouissant 
+# 9 = Vent fort – tempête 
 
 
 # Visualisation
 
 # Nombre d’accidents en fonction des conditions athmosphériques
-
-conditions_athmospheriques <- subset(data,select =descr_athmo)
-conditions_athmospheriques <- table(conditions_athmospheriques)
-plot(conditions_athmospheriques,xlab="conditions atmosphériques",ylab="nombre d'accidents")
+datagraph<-data
+conditions_athmospheriques <- subset(datagraph,select =descr_athmo)#récupère la colonne avec les informations
+conditions_athmospheriques <- table(conditions_athmospheriques)#met sous la forme de tableau avec le nombre de récurrence de chaque paramètre
+par(cex.axis = 0.7) #permet de réduir la police d'écriture des axes
+barplot(conditions_athmospheriques,xlab="conditions atmosphériques",ylab="nombre d'accidents",main="Nombre d’accidents en fonction des conditions athmosphériques",names.arg = c("Autre", "Brouillard – fumée","Neige – grêle", "Normale", "Pluie forte", "Pluie légère", "Temps couvert", "Temps éblouissant", "Vent fort– tempête"),
+        las = 1.5,cey.names = 0.5)
 
 # Nombre d’accidents en fonction de la description de la surface
-description_surface <- subset(data,select =descr_etat_surf)
+description_surface <- subset(data,select = descr_etat_surf)
+description_surface <- table(description_surface)
+barplot(description_surface,xlab="description de la surface",ylab="nombre d'accidents",main="Nombre d’accidents en fonction de la description de la surface",
+        names.arg = c("Autre",'Boue',"Corps gras – huile","Enneigée","Flaques","Inondée","Mouillée","Normale","Verglacée"),las=1.5 )
+
+# Nombre d’accidents selon la gravité 
+description_grav <- subset(data,select = descr_grav)
+description_grav <- table(description_grav)
+barplot(description_grav,xlab="description de la gravité",ylab="nombre d'accidents",main="Nombre d’accidents selon la gravité",
+        names.arg=c("Indemne","Tué","Blessé léger","Blessé hospitalisé"),las=1.5)
+
+
+
+#carte :
+install.packages("sf")
+install.packages("ggplot2")
+install.packages("dplyr")
+
+library(sf)
+library(ggplot2)
+library(dplyr)
+liste_departements_normandie =c(50,14,67,27,76)
+accidents_regions_normandie <-liste_departements_normandie %in% data$
+url_geojson <-"https://france-geojson.gregoiredavid.fr/repo/regions/normandie/region-normandie.geojson"
+regions_normandie_geojson <- st_read(url_geojson)
+ggplot() +
+  geom_sf(data = regions_geojson) +
+  geom_point(data = accidents_regions_normandie, aes(x = longitude, y = latitude)) +
+  theme_void()
+
+
+#leaflet
+install.packages("leaflet")
+install.packages("geojsonio")
+
+library(leaflet)
+library(geojsonio)
+
+#liste des départements par région :
+departements_normandie =c("50","14","67","27","76")
+departements_hauts_de_france =c("62","59","80","02","60")
+departements_ile_de_france =c("93","75","94","92","95","78","91","77")
+departements_grand_est =c("08","51","10","52","55","54","57","88","67","68")
+departements_bourgogne_franche_compte =c("89","58","21","71","70","39","25")
+departements_bretagne =c("29","22","56","35")
+departements_pays_de_la_loire =c("53","72","49","44","85")
+departements_centre_val_de_loire =c("28","41","45","37","36","18")
+departements_nouvelle_aquitaine =c("79","86","17","16","87","23","33","24","19","40","47","64")
+departements_occitanie =c("46","12","48","82","32","31","65","09","11","66","81","34","30")
+departements_auvergne_rhone_alpes =c("03","63","42","69","01","74","73","38","43","07","26","15")
+departements_provence_alpes_cote_azur =c("05","04","84","13","82","06")
+departements_corse =c("2B","2A")
+
+
+
+colonne_2prem_insee <- substr(data$id_code_insee, 1,2)#récupère les 2 premiers caractère de la colonne id_code_insee
+
+#vérifie si les codes postaux correpondent à la région demandée avec %in% et les compte avec table()
+accidents_normandie <- table(colonne_2prem_insee %in% departements_normandie)
+accidents_hauts_de_france <- table(colonne_2prem_insee %in% departements_hauts_de_france)
+accidents_ile_de_france <- table(colonne_2prem_insee %in% departements_ile_de_france)
+accidents_grand_est <- table(colonne_2prem_insee %in% departements_grand_est)
+accidents_bourgogne_franche_compte <- table(colonne_2prem_insee %in% departements_bourgogne_franche_compte)
+accidents_bretagne <- table(colonne_2prem_insee %in% departements_bretagne)
+accidents_pays_de_la_loire <- table(colonne_2prem_insee %in% departements_pays_de_la_loire)
+accidents_centre_val_de_loire <- table(colonne_2prem_insee %in% departements_centre_val_de_loire)
+accidents_nouvelle_aquitaine <- table(colonne_2prem_insee %in% departements_nouvelle_aquitaine)
+accidents_occitanie <- table(colonne_2prem_insee %in% departements_occitanie)
+accidents_auvergne_rhone_alpes <- table(colonne_2prem_insee %in% departements_auvergne_rhone_alpes)
+accidents_provence_alpes_cote_azur <- table(colonne_2prem_insee %in% departements_provence_alpes_cote_azur)
+accidents_corse <- table(colonne_2prem_insee %in% departements_corse)
+
+
+regions_geojson <- geojsonio::geojson_read("regions.geojson", what = "sp") 
+
+
+carte_regions <- leaflet() 
+carte_regions <-  carte_regions%>%addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = regions_geojson,weight = 1,fillOpacity = 0.6)%>%
+  setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
+  
+
+#ajout des marqueurs sur la carte, région par région :
+
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 49,lng = 0.4,color = "red",label = accidents_normandie[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 50.4,lng = 2.7,color = "red",label = accidents_hauts_de_france[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.9,lng = 2.5,color = "red",label = accidents_ile_de_france[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 48.5,lng = 6,color = "red",label = accidents_grand_est[2])
+carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 47,lng = 5,color = "red",label = accidents_bourgogne_franche_compte[2])
+
+
+#carte_regions <- carte_regions %>% clearMarkers() #permet de supprimer les points en cas d'erreur
+  
+  
+carte_regions #affiche la carte des régions de France
+
+print(accidents_normandie)
