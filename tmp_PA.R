@@ -187,6 +187,7 @@ hist(vecteur_age,
 # Création d'un Dataset contenant le nombre d'accident, et les coordonnées géographiques de chaque département 
 data$departement <- substr(data$id_code_insee, 1,2)
 data_departement <- aggregate(Num_Acc ~ departement, data, FUN = length)
+data_coord <- read.csv2("coord_depart.csv", sep =",")
 data_coord$Departement <- as.numeric(data_coord$Departement)
 data_coord$Latitude.la.plus.au.nord <- as.numeric(data_coord$Latitude.la.plus.au.nord)
 data_coord$Latitude.la.plus.au.sud <- as.numeric(data_coord$Latitude.la.plus.au.sud)
@@ -202,4 +203,6 @@ data_final_departement <- merge(data_departement, data_coord_moy, by.x = "depart
 #On remarque que certaines valeurs sont manquantes (par exemple la corse)
 data_final_departement <- data_final_departement[complete.cases(data_final_departement$Latitude, data_final_departement$Longitude), ]
 #On supprime les valeurs non complètes (NA)
+
+#On fait un nouveau dataset avec cette fois-çi uniquement les accidents graves (tués)
 
