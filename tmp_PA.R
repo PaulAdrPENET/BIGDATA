@@ -184,3 +184,22 @@ hist(vecteur_age,
           xlim = c(0,110)
 )
 
+# Création d'un Dataset contenant le nombre d'accident, et les coordonnées géographiques de chaque département 
+data$departement <- substr(data$id_code_insee, 1,2)
+data_departement <- aggregate(Num_Acc ~ departement, data, FUN = length)
+data_coord$Departement <- as.numeric(data_coord$Departement)
+data_coord$Latitude.la.plus.au.nord <- as.numeric(data_coord$Latitude.la.plus.au.nord)
+data_coord$Latitude.la.plus.au.sud <- as.numeric(data_coord$Latitude.la.plus.au.sud)
+data_coord$Longitude.la.plus.à.l.est <- as.numeric(data_coord$Longitude.la.plus.à.l.est)
+data_coord$Longitude.la.plus.à.l.ouest <- as.numeric(data_coord$Longitude.la.plus.à.l.ouest)
+latitude_moy <- aggregate(cbind(Latitude = rowMeans(cbind(Latitude.la.plus.au.nord, Latitude.la.plus.au.sud))) ~ Departement, data_coord, FUN = mean)
+longitude_moy <- aggregate(cbind(Longitude = rowMeans(cbind(Longitude.la.plus.à.l.est, Longitude.la.plus.à.l.ouest))) ~ Departement, data_coord, FUN = mean)
+data_coord_moy <- merge(latitude_moy, longitude_moy, by = "Departement")
+summary(data_coord_moy)
+summary(data_departement)
+data_departement$departement <- as.character(data_departement$departement)
+data_final_departement <- merge(data_departement, data_coord_moy, by.x = "departement", by.y = "Departement", all.x = TRUE)
+#On remarque que certaines valeurs sont manquantes (par exemple la corse)
+data_final_departement <- data_final_departement[complete.cases(data_final_departement$Latitude, data_final_departement$Longitude), ]
+#On supprime les valeurs non complètes (NA)
+
