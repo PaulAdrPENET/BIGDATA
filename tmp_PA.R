@@ -206,3 +206,9 @@ data_final_departement <- data_final_departement[complete.cases(data_final_depar
 
 #On fait un nouveau dataset avec cette fois-çi uniquement les accidents graves (tués)
 
+data_departement_mort <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 2), FUN = length)
+data_departement_hospitalises <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 4), FUN = length)
+colnames(data_departement_mort)[2]<-"tués"
+colnames(data_departement_hospitalises)[2]<-"hospitalises"
+data_final_departement <- merge(data_final_departement, data_departement_mort, by.x = "departement", by.y = "departement", all.x = TRUE)
+data_final_departement <- merge(data_final_departement, data_departement_hospitaliser, by.x = "departement", by.y = "departement", all.x = TRUE)
