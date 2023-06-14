@@ -237,16 +237,47 @@ carte_departements <-  carte_departements%>%addProviderTiles("CartoDB.Positron")
   addPolygons(data = departements_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
   setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
 
-#nouveau fichier csv comportant chaque departements avec son nombre d'accidents, sa latitudde et sa longitude :
-accidents_departement <- read.csv("chemin/vers/fichier.csv")
+
+# Création d'un Dataset contenant le nombre d'accident, et les coordonnées géographiques de chaque département 
+
+data$departement <- substr(data$id_code_insee, 1,2)
+data_departement <- aggregate(Num_Acc ~ departement, data, FUN = length)
+data_coord <- read.csv2("coord_depart.csv", sep =",")
+data_coord$Departement <- as.numeric(data_coord$Departement)
+data_coord$Latitude.la.plus.au.nord <- as.numeric(data_coord$Latitude.la.plus.au.nord)
+data_coord$Latitude.la.plus.au.sud <- as.numeric(data_coord$Latitude.la.plus.au.sud)
+data_coord$Longitude.la.plus.à.l.est <- as.numeric(data_coord$Longitude.la.plus.à.l.est)
+data_coord$Longitude.la.plus.à.l.ouest <- as.numeric(data_coord$Longitude.la.plus.à.l.ouest)
+latitude_moy <- aggregate(cbind(Latitude = rowMeans(cbind(Latitude.la.plus.au.nord, Latitude.la.plus.au.sud))) ~ Departement, data_coord, FUN = mean)
+longitude_moy <- aggregate(cbind(Longitude = rowMeans(cbind(Longitude.la.plus.à.l.est, Longitude.la.plus.à.l.ouest))) ~ Departement, data_coord, FUN = mean)
+data_coord_moy <- merge(latitude_moy, longitude_moy, by = "Departement")
+summary(data_coord_moy)
+summary(data_departement)
+data_departement$departement <- as.character(data_departement$departement)
+data_final_departement <- merge(data_departement, data_coord_moy, by.x = "departement", by.y = "Departement", all.x = TRUE)
+#On remarque que certaines valeurs sont manquantes (par exemple la corse)
+data_final_departement <- data_final_departement[complete.cases(data_final_departement$Latitude, data_final_departement$Longitude), ]
+#On supprime les valeurs non complètes (NA)
+
+#On fait un nouveau dataset avec cette fois-çi uniquement les accidents graves (tués)
+
+data_departement_mort <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 2), FUN = length)
+data_departement_hospitalises <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 4), FUN = length)
+colnames(data_departement_mort)[2]<-"tués"
+colnames(data_departement_hospitalises)[2]<-"hospitalises"
+data_final_departement <- merge(data_final_departement, data_departement_mort, by.x = "departement", by.y = "departement", all.x = TRUE)
+data_final_departement <- merge(data_final_departement, data_departement_hospitalises, by.x = "departement", by.y = "departement", all.x = TRUE)
+
+
+
 
 #boucle qui permet d'ajouter chaque marqueur sur la carte des départements
-for (i in 1:nrow(accidents_departement)) {
-  latitude <- accidents_departement[i, "latitude"]
-  longitude <- accidents_departement[i, "longitude"]
-  nombre_accidents <- accidents_departement[i, "nombre_accidents"]
+for (i in 1:nrow(data_final_departement)) {
+  latitude <- data_final_departement[i, "Latitude"]
+  longitude <- data_final_departement[i, "Longitude"]
+  nombre_accidents <- data_final_departement[i, "Num_Acc"]
   
-  carte_departements <- carte_departements %>% addCircleMarkers(data = accidents_departement
+  carte_departements <- carte_departements %>% addCircleMarkers(data = data_final_departement,
                               lat = latitude,
                               lng = longitude,
                               radius = 2,
@@ -262,20 +293,53 @@ carte_departements#affiche la carte des départements
 
 
 #carte des régions comportant le nombre de tués et de Blessés hospitalisés
-
-accidents_region <- read.csv("chemin/vers/fichier.csv")
-
-for (i in 1:nrow(accidents_region)) {
-  latitude <- accidents_region[i, "latitude"]
-  longitude <- accidents_region[i, "longitude"]
-  nombre_tues <- accidents_region[i, "nombre_tue"]
-  nombre_blesse_hospitalise <- accidents_region[i, "nombre_blesse_hospitalise"]
+for (i in 1:nrow(accidents_reg)) {
+  latitude <- accidents_reg[i, "Latitude"]
+  longitude <- accidents_reg[i, "Longitude"]
+  nombre_tues <- accidents_reg[i, "nombre_tue"]
+  nombre_blesse_hospitalise <- accidents_reg[i, "nombre_blesse_hospitalise"]
   
-  carte_departements_gravite <- carte_departements_gravite %>% addCircleMarkers(data = accidents_region,
+  carte_departements_gravite <- carte_departements_gravite %>% 
+    addCircleMarkers(data = accidents_region,
+                     lat = latitude,
+                     lng = longitude,
+                     color = "red",
+                     fill = TRUE,
+                     fillOpacity = 0.5,
+                     label = paste("nombre_tue : ", nombre_tues, "<br>", "nombre_blesse_hospitalise : ", nombre_blesse_hospitalise))
+}
+
+
+#carte des départements comportant le nombre de tués et de Blessés hospitalisés
+carte_departements_gravite <- leaflet() 
+carte_departements_gravite <-  carte_departements_gravite%>%addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = departements_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
+  setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
+
+
+
+for (i in 1:nrow(data_final_departement)) {
+  latitude <- data_final_departement[i, "Latitude"]
+  longitude <- data_final_departement[i, "Longitude"]
+  nombre_tues <- data_final_departement[i, "tués"]
+  nombre_blesse_hospitalise <- data_final_departement[i, "hospitalises"]
+  
+  carte_departements_gravite <- carte_departements_gravite %>% 
+    addCircleMarkers(data = data_final_departement,
                               lat = latitude,
                               lng = longitude,
+                              radius = 2,
                               color = "red",
                               fill = TRUE,
                               fillOpacity = 0.5,
-                              label = paste("nombre_tue : ", nombre_tue, "<br>", "nombre_blesse_hospitalise : ", nombre_blesse_hospitalise))
+                              label = paste("nombre tués : ", nombre_tues, ",", "nombre blessés hospitalisés : ", nombre_blesse_hospitalise))
 }
+carte_departements_gravite
+
+
+
+
+
+#Analyse des données
+
+
