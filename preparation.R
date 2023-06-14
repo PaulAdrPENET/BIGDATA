@@ -259,3 +259,5 @@ data$descr_cat_veh <- as.numeric(data$descr_cat_veh)
 #Voiturette (Quadricycle à moteur carrossé) (anciennement "voiturette ou tricycle à moteur") = 23
 #VU seul 1,5T <= PTAC <= 3,5T avec ou sans remorque = 24
 
+
+# .
