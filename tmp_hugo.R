@@ -138,23 +138,7 @@ barplot(description_grav,xlab="description de la gravité",ylab="nombre d'accide
 
 
 
-#carte :
-install.packages("sf")
-install.packages("ggplot2")
-install.packages("dplyr")
-
-library(sf)
-library(ggplot2)
-library(dplyr)
-liste_departements_normandie =c(50,14,67,27,76)
-accidents_regions_normandie <-liste_departements_normandie %in% data$
-url_geojson <-"https://france-geojson.gregoiredavid.fr/repo/regions/normandie/region-normandie.geojson"
-regions_normandie_geojson <- st_read(url_geojson)
-ggplot() +
-  geom_sf(data = regions_geojson) +
-  geom_point(data = accidents_regions_normandie, aes(x = longitude, y = latitude)) +
-  theme_void()
-
+#Cartes :
 
 #leaflet
 install.packages("leaflet")
@@ -197,16 +181,16 @@ accidents_auvergne_rhone_alpes <- table(colonne_2prem_insee %in% departements_au
 accidents_provence_alpes_cote_azur <- table(colonne_2prem_insee %in% departements_provence_alpes_cote_azur)
 accidents_corse <- table(colonne_2prem_insee %in% departements_corse)
 
-
+#on telecharge la carte des régions de france au format geojson
 regions_geojson <- geojsonio::geojson_read("regions.geojson", what = "sp") 
 
-
+#affichage de la carte des régions :
 carte_regions <- leaflet() 
 carte_regions <-  carte_regions%>%addProviderTiles("CartoDB.Positron") %>%
   addPolygons(data = regions_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
   setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
 
-#ajout des marqueurs sur la carte, région par région :
+#ajout des marqueurs sur la carte du nombre d'accidents, région par région :
 
 carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 49,lng = 0.4,color = "red",fillOpacity = 0.5,label = accidents_normandie[2])
 carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 50.4,lng = 2.7,color = "red",fillOpacity = 0.5,label = accidents_hauts_de_france[2])
@@ -224,14 +208,16 @@ carte_regions <- carte_regions %>%addCircleMarkers(data = regions_geojson,lat = 
 
 
 #carte_regions <- carte_regions %>% clearMarkers() #permet de supprimer les points en cas d'erreur
-  
-  
 carte_regions #affiche la carte des régions de France
 
-#carte_departements
+
+
+#carte departements avec le nombre d'accidents
+
+#on telecharge la carte des départements de france au format geojson :
 departements_geojson <- geojsonio::geojson_read("departements.geojson", what = "sp") 
 
-
+#affichage de la carte vierge
 carte_departements <- leaflet() 
 carte_departements <-  carte_departements%>%addProviderTiles("CartoDB.Positron") %>%
   addPolygons(data = departements_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
@@ -259,7 +245,7 @@ data_final_departement <- merge(data_departement, data_coord_moy, by.x = "depart
 data_final_departement <- data_final_departement[complete.cases(data_final_departement$Latitude, data_final_departement$Longitude), ]
 #On supprime les valeurs non complètes (NA)
 
-#On fait un nouveau dataset avec cette fois-çi uniquement les accidents graves (tués)
+#On fait un nouveau dataset avec cette fois-çi uniquement les accidents graves (tués et blessés hospitalisés)
 
 data_departement_mort <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 2), FUN = length)
 data_departement_hospitalises <- aggregate(descr_grav ~ departement, data=subset(data, descr_grav == 4), FUN = length)
@@ -271,7 +257,7 @@ data_final_departement <- merge(data_final_departement, data_departement_hospita
 
 
 
-#boucle qui permet d'ajouter chaque marqueur sur la carte des départements
+#boucle qui permet d'ajouter chaque marqueur sur la carte des départements à partir du dataset ci-dessus
 for (i in 1:nrow(data_final_departement)) {
   latitude <- data_final_departement[i, "Latitude"]
   longitude <- data_final_departement[i, "Longitude"]
@@ -290,34 +276,16 @@ for (i in 1:nrow(data_final_departement)) {
 carte_departements#affiche la carte des départements
 
 
-
-
-#carte des régions comportant le nombre de tués et de Blessés hospitalisés
-for (i in 1:nrow(accidents_reg)) {
-  latitude <- accidents_reg[i, "Latitude"]
-  longitude <- accidents_reg[i, "Longitude"]
-  nombre_tues <- accidents_reg[i, "nombre_tue"]
-  nombre_blesse_hospitalise <- accidents_reg[i, "nombre_blesse_hospitalise"]
-  
-  carte_departements_gravite <- carte_departements_gravite %>% 
-    addCircleMarkers(data = accidents_region,
-                     lat = latitude,
-                     lng = longitude,
-                     color = "red",
-                     fill = TRUE,
-                     fillOpacity = 0.5,
-                     label = paste("nombre_tue : ", nombre_tues, "<br>", "nombre_blesse_hospitalise : ", nombre_blesse_hospitalise))
-}
-
-
 #carte des départements comportant le nombre de tués et de Blessés hospitalisés
+
+#affichage de la carte avec les départements
 carte_departements_gravite <- leaflet() 
 carte_departements_gravite <-  carte_departements_gravite%>%addProviderTiles("CartoDB.Positron") %>%
   addPolygons(data = departements_geojson,weight = 1,fillOpacity = 0.6,fillColor = "lightblue", color = "white")%>%
   setView(lng = 1, lat = 46, zoom = 5) #permet de centrer la carte et de la mettre à la bonne dimension
 
 
-
+#boucle qui ajoute les marqueurs à partir du dataset créé au dessus
 for (i in 1:nrow(data_final_departement)) {
   latitude <- data_final_departement[i, "Latitude"]
   longitude <- data_final_departement[i, "Longitude"]
@@ -334,12 +302,12 @@ for (i in 1:nrow(data_final_departement)) {
                               fillOpacity = 0.5,
                               label = paste("nombre tués : ", nombre_tues, ",", "nombre blessés hospitalisés : ", nombre_blesse_hospitalise))
 }
-carte_departements_gravite
+carte_departements_gravite #affiche la carte des départements avec le nombre de tués et de blessés hospitalisés
 
 
 
 
 
-#Analyse des données
+
 
 
