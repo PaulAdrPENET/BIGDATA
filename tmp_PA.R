@@ -109,6 +109,52 @@ summary(data)
 data$hours <- format(data$date, "%H") 
 data_hourly <- aggregate(Num_Acc ~ hours, data, FUN = length)
 
+#Nombre d'accidents en fonction de la luminosité :
+data_luminosite <- aggregate(Num_Acc ~ descr_lum, data, FUN = length)
+
+barplot(data_luminosite$Num_Acc,
+        main = "Nombre d'accident en fonction de la luminosite",
+        xlab = "Type de luminosite",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_luminosite$descr_lum,
+        las = 1.5
+)
+#Nombre d'accidents en fonction du type de véhicule :
+data_vehicule <- aggregate(Num_Acc ~ descr_cat_veh, data, FUN = length)
+
+barplot(data_vehicule$Num_Acc,
+        main = "Nombre d'accidents selon le type de véhicule",
+        xlab = "Type du véhicule",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_vehicule$descr_cat_veh,
+        las = 1.5
+)
+#Nombre d'accidents en du type d'intersection :
+data_intersection <- aggregate(Num_Acc ~ description_intersection, data, FUN = length)
+
+barplot(data_intersection$Num_Acc,
+        main = "Nombre d'accidents selon le type d'intersection",
+        xlab = "Type de véhicule",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_intersection$description_intersection,
+        las = 1.5
+)
+#Nombre d'accidents en agglomération ou hors agglomération :
+data_agglomeration <- aggregate(Num_Acc ~ descr_agglo, data, FUN = length)
+
+barplot(data_agglomeration$Num_Acc,
+        main = "Nombre d'accidents en agglo ou hors agglo",
+        xlab = "Type",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_agglomeration$descr_agglo,
+        las = 1.5
+)
+
+
 #Nombre d'accidents par tranches d'heures.
 
 barplot(data_hourly$Num_Acc,
@@ -183,6 +229,10 @@ hist(vecteur_age,
           ylim = c(0,2500),
           xlim = c(0,110)
 )
+#On ajoute la moyenne.
+moy_age <- mean(vecteur_age)
+abline(v = moy_age, col = "blue", lwd = 2)
+
 
 # Création d'un Dataset contenant le nombre d'accident, et les coordonnées géographiques de chaque département 
 data$departement <- substr(data$id_code_insee, 1,2)
@@ -212,3 +262,36 @@ colnames(data_departement_mort)[2]<-"tués"
 colnames(data_departement_hospitalises)[2]<-"hospitalises"
 data_final_departement <- merge(data_final_departement, data_departement_mort, by.x = "departement", by.y = "departement", all.x = TRUE)
 data_final_departement <- merge(data_final_departement, data_departement_hospitaliser, by.x = "departement", by.y = "departement", all.x = TRUE)
+
+
+#Analyse en régression linéaire : 
+# Régression par mois :
+data_monthly$month <- as.numeric(data_monthly$month)
+regression_mois <- lm(Num_Acc~ month, data = data_monthly)
+summary(regression_mois)
+
+
+
+plot(data_monthly$month,
+     data_monthly$Num_Acc,
+     xlim = c(1, 12),
+     ylim = c(3526, 8000),
+     xlab='mois',
+     ylab="Nombre d'accidents",)
+
+abline(regression_mois, col = 'blue')
+title("Droite de régression par mois")
+
+# Régression par semaine :
+data_weekly$week <- as.numeric(data_weekly$week)
+regression_semaine <- lm(Num_Acc ~ week, data = data_weekly)
+summary(regression_week)
+
+plot(data_weekly$week,
+     data_weekly$Num_Acc,
+     xlim = c(1, 53),
+     ylim = c(200, 2000),
+     xlab = "Semaine",
+     ylab="Nombre d'accidents")
+abline(regression_semaine, col = 'blue')
+title("Droite de régression par semaine")
