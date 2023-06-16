@@ -205,7 +205,7 @@ data$descr_grav <- as.numeric(data$descr_grav)
 # Blessé léger = 3
 # Blessé hospitalisé = 4 
 
-# Colonne descr_type_col
+# Colonne descr_type_col 
 data$descr_type_col <- factor(data$descr_type_col)
 data$descr_type_col<- as.numeric(data$descr_type_col)
 
