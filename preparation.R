@@ -57,13 +57,13 @@ print(data)
 summary(data)
 print(length(data$latitude))
 print(length(data$longitude))
-#Toutes les valeurs sont présentes.
+# Toutes les valeurs sont présentes.
 
 
-#Conversion des dates sous formes de chaîne de caractère en date
+# Conversion des dates sous formes de chaîne de caractère en date
 data$date <- as.Date(data$date, format = "%Y-%m-%d %H:%M:%S")
 summary(data)
-#Vérification que toutes les dates sont biens comprises entre le 1er janvier 2009 et le 31 decembre 2009
+# Vérification que toutes les dates sont biens comprises entre le 1er janvier 2009 et le 31 decembre 2009
 date_min <- min(data$date)
 date_max <- max(data$date)
 print(date_min)
@@ -104,8 +104,6 @@ data$date <- as.POSIXct(data_brut$date, format = "%Y-%m-%d %H:%M:%S")
 summary(data)
 
 # Préparation Gabriel 
-
-pop <- read.csv("data_pop.csv", sep=";")
 
 # Modification de la colonne descr_motif_traj
 data$descr_motif_traj <- factor(data$descr_motif_traj)
@@ -152,112 +150,144 @@ print(table(data$descr_athmo))
 # 6 = Pluie légère
 # 7 = Temps couvert
 # 8 = Temps éblouissant 
-# 9 = Vent fort – tempête 
+# 9 = Vent fort – tempête
 
-# Construcion du jeu de données
-#print(table(data$ville))
+# Construction du jeu de données
+# Ouverture du document du gouvernement avec données de population
+pop <- read.csv("data_pop.csv", sep=";")
+
+# Somme de la population de chaque ville d'une région
+pop_reg <- aggregate(P_09 ~ REG, pop, sum)
+# Somme des occurences d'accident en fonction de la ville et de la gravité
+acc_file <- aggregate(Num_Acc ~ id_code_insee + descr_grav, data, length)
+# Rename de colonnes pour faciliter la lecture
+colnames(acc_file)[colnames(acc_file) == "id_code_insee"] <- "REG"
+colnames(acc_file)[colnames(acc_file) == "Num_Acc"] <- "nb_acc"
+
+# Modification de la colonne REG pour attribuer le numéro de région
+acc_file$REG <- substr(acc_file$REG, 1, 2)
+
+# Correction de l'erreur lorsque le numéro de région n'est qu'un chiffre
+acc_file$REG <- ifelse(acc_file$REG == "10", "1",
+                ifelse(acc_file$REG == "20", "2",
+                ifelse(acc_file$REG == "30", "3",
+                ifelse(acc_file$REG == "40", "4",
+                ifelse(acc_file$REG == "50", "5",
+                ifelse(acc_file$REG == "60", "6",
+                ifelse(acc_file$REG == "70", "7",
+                ifelse(acc_file$REG == "80", "8",
+                ifelse(acc_file$REG == "90", "9",
+                                                                               acc_file$REG)))))))))
+# Condensage des données pour avoir le nombre d'accident
+# En fonction de la région et de la gravité
+acc_file <- aggregate(nb_acc ~ REG + descr_grav,
+                      data=acc_file, FUN = sum)
+# Ajout de la colonne P_09 du fichier pop_reg au fichier acc_file
+# En fonction du numéro de région
+acc_file <- merge(acc_file, pop_reg, by = "REG")
+# Calcul du nombre d'accident 
+# Par catégorie de gravité pour 100 000 habitants
+acc_file$per_100000 <- (acc_file$nb_acc * 100000) / acc_file$P_09
+
 
 # Préparation Hugo : 
 
-
-#affiche les différents paramètres d'une colonne 
+# Affiche les différents paramètres d'une colonne 
 cat=data$num_veh
 print(table(cat))
 
-#colonne descr_grav
-data$descr_grav  <- factor(data$descr_grav, level=c("Indemne","Tué","Blessé léger","Blessé hospitalisé"))
+# Colonne descr_grav
+data$descr_grav  <- factor(data$descr_grav)
 data$descr_grav <- as.numeric(data$descr_grav)
 
-#Indemne = 1
-#Tué = 2
-#Blessé léger = 3
-#Blessé hospitalisé = 4
+# Indemne = 1
+# Tué = 2
+# Blessé léger = 3
+# Blessé hospitalisé = 4 
 
-#colonne descr_type_col
-data$descr_type_col <- factor(data$descr_type_col,level=c("Autre collision ","Deux véhicules - Frontale","Deux véhicules – Par l’arrière ","Deux véhicules – Par le coté","Sans collision","Trois véhicules et plus – Collisions multiples","Trois véhicules et plus – En chaîne"))
+# Colonne descr_type_col
+data$descr_type_col <- factor(data$descr_type_col)
 data$descr_type_col<- as.numeric(data$descr_type_col)
 
-#Autre collision = 1
-#Deux véhicules - Frontale = 2
-#Deux véhicules – Par l’arrière = 3
-#Deux véhicules – Par le coté = 4
-#Sans collision = 5
-#Trois véhicules et plus – Collisions multiples = 6
-#Trois véhicules et plus – En chaîne = 7
+# Autre collision = 1
+# Deux véhicules - Frontale = 2
+# Deux véhicules – Par l’arrière = 3
+# Deux véhicules – Par le coté = 4
+# Sans collision = 5
+# Trois véhicules et plus – Collisions multiples = 6
+# Trois véhicules et plus – En chaîne = 7
 
-#colonne description_intersection
+# Colonne description_intersection
 data$description_intersection <- factor(data$description_intersection)
 data$description_intersection <- as.numeric(data$description_intersection)
 
-#Autre intersection = 1
-#Giratoire = 2
-#Hors intersection = 3
-#Intersection à plus de 4 branches = 4
-#Intersection en T = 5
-#Intersection en X = 6
-#Intersection en Y = 7
-#Passage à niveau = 8
-#Place = 9
+# Autre intersection = 1
+# Giratoire = 2
+# Hors intersection = 3
+# Intersection à plus de 4 branches = 4
+# Intersection en T = 5
+# Intersection en X = 6
+# Intersection en Y = 7
+# Passage à niveau = 8
+# Place = 9
 
-#colonne descr_etat_surf
+# Colonne descr_etat_surf
 data$descr_etat_surf <- factor(data$descr_etat_surf)
 data$descr_etat_surf <- as.numeric(data$descr_etat_surf)
 
-#Autre = 1
-#Boue = 2
-#Corps gras – huile = 3
-#Enneigée = 4
-#Flaques = 5
-#Inondée = 6
-#Mouillée = 7
-#Normale = 8
-#Verglacée = 9
+# Autre = 1
+# Boue = 2
+# Corps gras – huile = 3
+# Enneigée = 4
+# Flaques = 5
+# Inondée = 6
+# Mouillée = 7
+# Normale = 8
+# Verglacée = 9
 
-#colonne descr_lum
+# Colonne descr_lum
 data$descr_lum <- factor(data$descr_lum)
 data$descr_lum <- as.numeric(data$descr_lum)
 
-#Crépuscule ou aube = 1
-#Nuit avec éclairage public allumé = 2
-#Nuit avec éclairage public non allumé = 3
-#Nuit sans éclairage public = 4
-#Plein jour = 5
+# Crépuscule ou aube = 1
+# Nuit avec éclairage public allumé = 2
+# Nuit avec éclairage public non allumé = 3
+# Nuit sans éclairage public = 4
+# Plein jour = 5
 
-#colonne descr_agglo
+# Colonne descr_agglo
 data$descr_agglo <- factor(data$descr_agglo)
 data$descr_agglo <- as.numeric(data$descr_agglo)
 
-#En agglomération = 1
-#Hors agglomération = 2
+# En agglomération = 1
+# Hors agglomération = 2
 
-#colonne descr_cat_veh
+# Colonne descr_cat_veh
 data$descr_cat_veh <- factor(data$descr_cat_veh)
 data$descr_cat_veh <- as.numeric(data$descr_cat_veh)
 
-#Autobus = 1
-#Autocar = 2
-#Autre véhicule = 3
-#Bicyclette = 4
-#Cyclomoteur <50cm3 =5
-#Engin spécial = 6
-#Motocyclette > 125 cm3 = 7
-#Motocyclette > 50 cm3 et <= 125 cm3 = 8
-#PL > 3,5T + remorque = 9
-#PL seul > 7,5T = 10
-#PL seul 3,5T <PTCA <= 7,5T = 11
+# Autobus = 1
+# Autocar = 2
+# Autre véhicule = 3
+# Bicyclette = 4
+# Cyclomoteur <50cm3 =5
+# Engin spécial = 6
+# Motocyclette > 125 cm3 = 7
+# Motocyclette > 50 cm3 et <= 125 cm3 = 8
+# PL > 3,5T + remorque = 9
+# PL seul > 7,5T = 10
+# PL seul 3,5T <PTCA <= 7,5T = 11
 # Quad léger <= 50 cm3 (Quadricycle à moteur non carrossé) = 12
-#Quad lourd > 50 cm3 (Quadricycle à moteur non carrossé) = 13
-#Scooter < 50 cm3 = 14
-#Scooter > 125 cm3 = 15
-#Scooter > 50 cm3 et <= 125 cm3 = 16
-#Tracteur agricole = 17
-#Tracteur routier + semi-remorque = 18
-#Tracteur routier seul = 19
-#Train = 20
-#Tramway = 21
-#VL seul = 22
-#Voiturette (Quadricycle à moteur carrossé) (anciennement "voiturette ou tricycle à moteur") = 23
-#VU seul 1,5T <= PTAC <= 3,5T avec ou sans remorque = 24
+# Quad lourd > 50 cm3 (Quadricycle à moteur non carrossé) = 13
+# Scooter < 50 cm3 = 14
+# Scooter > 125 cm3 = 15
+# Scooter > 50 cm3 et <= 125 cm3 = 16
+# Tracteur agricole = 17
+# Tracteur routier + semi-remorque = 18
+# Tracteur routier seul = 19
+# Train = 20
+# Tramway = 21
+# VL seul = 22
+# Voiturette (Quadricycle à moteur carrossé) (anciennement "voiturette ou tricycle à moteur") = 23
+# VU seul 1,5T <= PTAC <= 3,5T avec ou sans remorque = 24
 
-
-# .
