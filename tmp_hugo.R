@@ -272,7 +272,7 @@ for (i in 1:nrow(data_final_departement)) {
                               fillOpacity = 0.5,
                               label = nombre_accidents)
 }
-
+#carte_departements <- carte_departements %>% clearMarkers()
 carte_departements#affiche la carte des départements
 
 
@@ -304,8 +304,10 @@ for (i in 1:nrow(data_final_departement)) {
 }
 carte_departements_gravite #affiche la carte des départements avec le nombre de tués et de blessés hospitalisés
 
+#affichage de la carte des régions de France avec le nombre de tués et de blessés hospitalisés
 
-
+accidents_normandie <- table(colonne_2prem_insee %in% departements_normandie)
+print(accidents_normandie)
 
 
 
