@@ -1,7 +1,6 @@
 # ANALYSE 
 
 # GABRIEL
-data <- read.csv2("data_modif.csv", sep =";")
 couleurs <- c("#ADD8E6", "#FFFFE0", "#98FB98", "#FFC0CB")
 
 # Liste des variables qualitatives
@@ -54,7 +53,7 @@ title("Droite de régression par mois")
 # Régression par semaine :
 data_weekly$week <- as.numeric(data_weekly$week)
 regression_semaine <- lm(Num_Acc ~ week, data = data_weekly)
-summary(regression_week)
+summary(regression_semaine)
 
 plot(data_weekly$week,
      data_weekly$Num_Acc,
