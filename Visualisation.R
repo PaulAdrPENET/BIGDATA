@@ -34,6 +34,52 @@ barplot(description_grav,xlab="description de la gravité",ylab="nombre d'accide
 data$hours <- format(data$date, "%H") 
 data_hourly <- aggregate(Num_Acc ~ hours, data, FUN = length)
 
+
+#Nombre d'accidents en fonction de la luminosité :
+data_luminosite <- aggregate(Num_Acc ~ descr_lum, data, FUN = length)
+
+barplot(data_luminosite$Num_Acc,
+        main = "Nombre d'accident en fonction de la luminosite",
+        xlab = "Type de luminosite",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_luminosite$descr_lum,
+        las = 1.5
+)
+#Nombre d'accidents en fonction du type de véhicule :
+data_vehicule <- aggregate(Num_Acc ~ descr_cat_veh, data, FUN = length)
+
+barplot(data_vehicule$Num_Acc,
+        main = "Nombre d'accidents selon le type de véhicule",
+        xlab = "Type du véhicule",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_vehicule$descr_cat_veh,
+        las = 1.5
+)
+#Nombre d'accidents en du type d'intersection :
+data_intersection <- aggregate(Num_Acc ~ description_intersection, data, FUN = length)
+
+barplot(data_intersection$Num_Acc,
+        main = "Nombre d'accidents selon le type d'intersection",
+        xlab = "Type de véhicule",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_intersection$description_intersection,
+        las = 1.5
+)
+#Nombre d'accidents en agglomération ou hors agglomération :
+data_agglomeration <- aggregate(Num_Acc ~ descr_agglo, data, FUN = length)
+
+barplot(data_agglomeration$Num_Acc,
+        main = "Nombre d'accidents en agglo ou hors agglo",
+        xlab = "Type",
+        ylab = "Nombre d'accidents",
+        col = "lightblue",
+        names.arg = data_agglomeration$descr_agglo,
+        las = 1.5
+)
+
 #Nombre d'accidents par tranches d'heures.
 
 barplot(data_hourly$Num_Acc,
@@ -109,12 +155,12 @@ hist(vecteur_age,
      xlim = c(0,110)
 )
 
+#On ajoute la moyenne.
+moy_age <- mean(vecteur_age)
+abline(v = moy_age, col = "blue", lwd = 2)
 
 
-
-
-
-#affichage des cartes 
+#affichage des cartes (HUGO MONNIER et PAUL-ADRIEN PENET)
 
 #leaflet
 install.packages("leaflet")
