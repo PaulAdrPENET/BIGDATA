@@ -157,7 +157,7 @@ print(table(data$descr_athmo))
 pop <- read.csv("data_pop.csv", sep=";")
 
 # Somme de la population de chaque ville d'une région
-pop_reg <- aggregate(P_09 ~ REG, pop, sum)
+pop_reg <- aggregate(P09_POP ~ REG, pop, sum)
 # Somme des occurences d'accident en fonction de la ville et de la gravité
 acc_file <- aggregate(Num_Acc ~ id_code_insee + descr_grav, data, length)
 # Rename de colonnes pour faciliter la lecture
@@ -187,7 +187,7 @@ acc_file <- aggregate(nb_acc ~ REG + descr_grav,
 acc_file <- merge(acc_file, pop_reg, by = "REG")
 # Calcul du nombre d'accident 
 # Par catégorie de gravité pour 100 000 habitants
-acc_file$per_100000 <- (acc_file$nb_acc * 100000) / acc_file$P_09
+acc_file$per_100000 <- (acc_file$nb_acc * 100000) / acc_file$P09_POP
 
 
 # Préparation Hugo : 
